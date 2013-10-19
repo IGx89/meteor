@@ -11,67 +11,49 @@ With Meteor you write apps:
 
 Documentation is available at http://docs.meteor.com/
 
-## Quick Start
+## Installing on a Raspberry Pi device
+
+Download the Raspbian Wheezy armhf Raspberry Pi minimal image and put it on a 1+ GB SD card: http://www.linuxsystems.it/raspbian-wheezy-armhf-raspberry-pi-minimal-image/
+
+Start up the OS on the device using the SD card you built
+
+Install packages required by fibers and Meteor:
+	
+    apt-get update
+	apt-get install python make g++ curl
 
 Install Meteor:
 
-    curl https://install.meteor.com | /bin/sh
+	mkdir /opt/meteor
+	cd /opt
+	git clone https://github.com/IGx89/meteor.git
+	cd meteor/scripts
+	./generate-dev-bundle.sh
+	cd ..
+	./meteor
 
-Create a project:
+To add Meteor to your PATH, run `nano /etc/profile` and then put the following right before the `export PATH` line:
 
-    meteor create try-meteor
+    # add Meteor to path
+    PATH="$PATH:/opt/meteor"
 
-Run it:
+Log out of the terminal session and go back in, to make the PATH change take effect
 
-    cd try-meteor
-    meteor
+Setup mongodb (change to address of a mongo database running on a different computer -- doesn't support running locally yet):
 
-Deploy it to the world, for free:
+	export MONGO_URL=mongodb://192.168.1.108:27017/todos
 
-    meteor deploy try-meteor.meteor.com
+Create and run a Meteor app:
 
-## Slow Start (for developers)
+	mkdir ~/apps
+	cd apps
+	meteor create --example todos
+	cd todos
+	meteor
 
-If you want to run on the bleeding edge, or help develop Meteor, you
-can run Meteor directly from a git checkout.
+## Todo
 
-    git clone git://github.com/meteor/meteor.git
-    cd meteor
-
-If you're the sort of person who likes to build everything from scratch,
-you can build all the Meteor dependencies (node.js, npm, mongodb, etc)
-with the provided script. If you do not run this script, Meteor will
-automatically download pre-compiled binaries when you first run it.
-
-    # OPTIONAL
-    ./scripts/generate-dev-bundle.sh
-
-Now you can run meteor directly from the checkout (if you did not
-build the dependency bundle above, this will take a few moments to
-download a pre-build version).
-
-    ./meteor --help
-
-From your checkout, you can read the docs locally. The `/docs` directory is a
-meteor application, so simply change into the `/docs` directory and launch
-the app:
-
-    cd docs/
-    ../meteor
-
-You'll then be able to read the docs locally in your browser at
-`http://localhost:3000/`
-
-Note that if you run Meteor from a git checkout, you cannot pin apps to specific
-Meteor releases or run using different Meteor releases using `--release`.
-
-## Uninstalling Meteor
-
-Aside from a short launcher shell script, Meteor installs itself inside your
-home directory. To uninstall Meteor, run:
-
-    rm -rf ~/.meteor/
-    sudo rm /usr/local/bin/meteor
+* Implement support for running mongodb locally
 
 ## Developer Resources
 
