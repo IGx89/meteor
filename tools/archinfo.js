@@ -150,8 +150,11 @@ var host = function () {
         _host = "os.linux.x86_32";
       else if (_.contains(["x86_64", "amd64", "ia64"], machine))
         _host = "os.linux.x86_64";
-      else
-        throw new Error("Unsupported architecture: " + machine);
+	  // FIXME: why doesn't this test work?
+      //else if (_.contains(["armv61"], machine))
+        _host = "os.linux.armv61";
+      //else
+      //  throw new Error("Unsupported architecture: " + machine);
     }
 
     else

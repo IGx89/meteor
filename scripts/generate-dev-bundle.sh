@@ -7,9 +7,9 @@ UNAME=$(uname)
 ARCH=$(uname -m)
 
 if [ "$UNAME" == "Linux" ] ; then
-    if [ "$ARCH" != "i686" -a "$ARCH" != "x86_64" ] ; then
+    if [ "$ARCH" != "i686" -a "$ARCH" != "x86_64" -a "$ARCH" != "armv7l" -a "$ARCH" != "armv6l" ] ; then
         echo "Unsupported architecture: $ARCH"
-        echo "Meteor only supports i686 and x86_64 for now."
+        echo "Meteor only supports i686, x86_64, armv71 and armv61 for now."
         exit 1
     fi
 
@@ -68,21 +68,26 @@ echo BUILDING IN "$DIR"
 cd "$DIR"
 chmod 755 .
 umask 022
-mkdir build
-cd build
+#mkdir build
+#cd build
 
-git clone git://github.com/joyent/node.git
-cd node
+#git clone git://github.com/joyent/node.git
+#cd node
 # When upgrading node versions, also update the values of MIN_NODE_VERSION at
 # the top of tools/meteor.js and tools/server/boot.js, and the text in
 # docs/client/concepts.html and the README in tools/bundler.js.
-git checkout v0.10.20
+#git checkout v0.10.20
 
-./configure --prefix="$DIR"
-make -j4
-make install PORTABLE=1
+#./configure --prefix="$DIR"
+#make -j4
+#make install PORTABLE=1
 # PORTABLE=1 is a node hack to make npm look relative to itself instead
 # of hard coding the PREFIX.
+
+#downloading a pre-built copy of node for raspberrypi/arm
+wget http://nodejs.org/dist/v0.10.20/node-v0.10.20-linux-arm-pi.tar.gz
+tar xzf node-v0.10.20-linux-arm-pi.tar.gz --strip=1
+rm node-v0.10.20-linux-arm-pi.tar.gz
 
 # export path so we use our new node for later builds
 export PATH="$DIR/bin:$PATH"
@@ -140,66 +145,66 @@ cd ../..
 # We want to build a binary that includes SSL support but does not depend on a
 # particular version of openssl on the host system.
 
-cd "$DIR/build"
-OPENSSL="openssl-1.0.1e"
-OPENSSL_URL="http://www.openssl.org/source/$OPENSSL.tar.gz"
-wget $OPENSSL_URL || curl -O $OPENSSL_URL
-tar xzf $OPENSSL.tar.gz
+#cd "$DIR/build"
+#OPENSSL="openssl-1.0.1e"
+#OPENSSL_URL="http://www.openssl.org/source/$OPENSSL.tar.gz"
+#wget $OPENSSL_URL || curl -O $OPENSSL_URL
+#tar xzf $OPENSSL.tar.gz
 
-cd $OPENSSL
-if [ "$UNAME" == "Linux" ]; then
-    ./config --prefix="$DIR/build/openssl-out" no-shared
-else
+#cd $OPENSSL
+#if [ "$UNAME" == "Linux" ]; then
+#    ./config --prefix="$DIR/build/openssl-out" no-shared
+#else
     # This configuration line is taken from Homebrew formula:
     # https://github.com/mxcl/homebrew/blob/master/Library/Formula/openssl.rb
-    ./Configure no-shared zlib-dynamic --prefix="$DIR/build/openssl-out" darwin64-x86_64-cc enable-ec_nistp_64_gcc_128
-fi
-make install
+#    ./Configure no-shared zlib-dynamic --prefix="$DIR/build/openssl-out" darwin64-x86_64-cc enable-ec_nistp_64_gcc_128
+#fi
+#make install
 
 # To see the mongo changelog, go to http://www.mongodb.org/downloads,
 # click 'changelog' under the current version, then 'release notes' in
 # the upper right.
-cd "$DIR/build"
-MONGO_VERSION="2.4.6"
+#cd "$DIR/build"
+#MONGO_VERSION="2.4.6"
 
 # We use Meteor fork since we added some changes to the building script.
 # Our patches allow us to link most of the libraries statically.
-git clone git://github.com/meteor/mongo.git
-cd mongo
-git checkout ssl-r$MONGO_VERSION
+#git clone git://github.com/meteor/mongo.git
+#cd mongo
+#git checkout ssl-r$MONGO_VERSION
 
 # Compile
 
-MONGO_FLAGS="--ssl --release -j4 "
-MONGO_FLAGS+="--cpppath $DIR/build/openssl-out/include --libpath $DIR/build/openssl-out/lib "
+#MONGO_FLAGS="--ssl --release -j4 "
+#MONGO_FLAGS+="--cpppath $DIR/build/openssl-out/include --libpath $DIR/build/openssl-out/lib "
 
-if [ "$MONGO_OS" == "osx" ]; then
+#if [ "$MONGO_OS" == "osx" ]; then
     # NOTE: '--64' option breaks the compilation, even it is on by default on x64 mac: https://jira.mongodb.org/browse/SERVER-5575
-    MONGO_FLAGS+="--openssl $DIR/build/openssl-out/lib "
-    /usr/local/bin/scons $MONGO_FLAGS mongo mongod
-elif [ "$MONGO_OS" == "linux" ]; then
-    MONGO_FLAGS+="--no-glibc-check --prefix=./ "
-    if [ "$ARCH" == "x86_64" ]; then
-      MONGO_FLAGS+="--64"
-    fi
-    scons $MONGO_FLAGS mongo mongod
-else
-    echo "We don't know how to compile mongo for this platform"
-    exit 1
-fi
+#    MONGO_FLAGS+="--openssl $DIR/build/openssl-out/lib "
+#    /usr/local/bin/scons $MONGO_FLAGS mongo mongod
+#elif [ "$MONGO_OS" == "linux" ]; then
+#    MONGO_FLAGS+="--no-glibc-check --prefix=./ "
+#    if [ "$ARCH" == "x86_64" ]; then
+#      MONGO_FLAGS+="--64"
+#    fi
+#    scons $MONGO_FLAGS mongo mongod
+#else
+#    echo "We don't know how to compile mongo for this platform"
+#    exit 1
+#fi
 
 # Copy binaries
-mkdir -p "$DIR/mongodb/bin"
-cp mongo "$DIR/mongodb/bin/"
-cp mongod "$DIR/mongodb/bin/"
+#mkdir -p "$DIR/mongodb/bin"
+#cp mongo "$DIR/mongodb/bin/"
+#cp mongod "$DIR/mongodb/bin/"
 
 # Copy mongodb distribution information
-find ./distsrc -maxdepth 1 -type f -exec cp '{}' ../mongodb \;
+#find ./distsrc -maxdepth 1 -type f -exec cp '{}' ../mongodb \;
 
 cd "$DIR"
-stripBinary bin/node
-stripBinary mongodb/bin/mongo
-stripBinary mongodb/bin/mongod
+#stripBinary bin/node
+#stripBinary mongodb/bin/mongo
+#stripBinary mongodb/bin/mongod
 
 echo BUNDLING
 
