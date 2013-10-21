@@ -1292,7 +1292,7 @@ _.extend(ServerTarget.prototype, {
       'os.linux.x86_64': 'Linux_x86_64',
       'os.osx.x86_64': 'Darwin_x86_64',
       'os.linux.armv7l': 'Linux_ARMv7l',
-	  'os.linux.armv61': 'Linux_ARMv6l'
+      'os.linux.armv6l': 'Linux_ARMv6l'
     };
     var arch = archinfo.host();
     var platform = archToPlatform[arch];
